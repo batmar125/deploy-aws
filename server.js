@@ -5,7 +5,7 @@ const app = express()
 function getdata () {
     return new Promise(async (resolve, reject) => {
         try {
-            const browser = await puppeteer.launch({ headless: false });
+            const browser = await puppeteer.launch({ executablePath: '/usr/bin/chromium-browser' });
             const page = await browser.newPage();
             await page.goto("https://blaze.com/pt/games/double");
             let urls = await page.evaluate(() => {
