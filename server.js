@@ -27,7 +27,7 @@ function getdata () {
     })
 }
 app.get('/api',async (req, res) => {
-    console.log("Request on API" + getMinutes),
+    console.log("Request on API"),
     await getdata().then(await res.send(await getdata().then())).catch(console.log)
 }
 )
