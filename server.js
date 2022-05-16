@@ -1,6 +1,7 @@
 const express = require('express')
 const puppeteer = require('puppeteer');
 const app = express()
+const cors = require('cors')
     
     function getdata () {
         return new Promise(async (resolve, reject) => {
@@ -42,7 +43,7 @@ const app = express()
                     '--use-gl=swiftshader',
                     '--use-mock-keychain',
                   ];
-                const browser = await puppeteer.launch({ headless: true, args: minimal_args, executablePath: '/usr/bin/chromium-browser' });
+                const browser = await puppeteer.launch({ headless: true, args: minimal_args });
                 const page = await browser.newPage();
                 await page.goto("https://blaze.com/pt/games/double");
                 let urls = await page.evaluate(() => {
@@ -64,6 +65,8 @@ const app = express()
         })
     }
     app.get('/api',async (req, res) => {
+        res.header("Access-Control-Allow-Origin", "*")
+        app.use(cors())
         var today = new Date();
         var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
         console.log("Foi feito um pedido na API do Henrique ás:" + time ),
