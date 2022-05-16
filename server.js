@@ -54,7 +54,7 @@ const app = express()
                             text: item.innerText,
                         });
                     });
-                    return results;
+                    return results.slice(0, 20);
                   })
                 browser.close();
                 return resolve(urls);
