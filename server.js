@@ -43,7 +43,7 @@ const cors = require('cors')
                     '--use-gl=swiftshader',
                     '--use-mock-keychain',
                   ];
-                const browser = await puppeteer.launch({ headless: true, args: minimal_args });
+                const browser = await puppeteer.launch({ headless: true, args: minimal_args, executablePath: '/usr/bin/chromium-browser' });
                 const page = await browser.newPage();
                 await page.goto("https://blaze.com/pt/games/double");
                 let urls = await page.evaluate(() => {
