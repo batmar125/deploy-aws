@@ -53,13 +53,13 @@ function getdata () {
             let urls = await page.evaluate(() => {
                 let results = [];
                 let items = document.querySelectorAll('div.entry');
-                items.forEach((item) => {
+                items.forEach((item, i) => {
                     results.push({
-                        url:  item.getAttribute('class'),
+                        id:  i + 1,
                         text: item.innerText,
                     });
                 });
-                return results.slice();
+                return results.slice(0, 20);
               })
             return resolve(urls);
         } catch (e) {
