@@ -3,6 +3,10 @@ const express = require('express')
 const app = express()
 const port = 5000
 const puppeteer = require('puppeteer')
+const cors = require('cors');
+app.use(cors({
+    origin: '127.0.0.1/'
+}));
 const minimal_args = [
     '--autoplay-policy=user-gesture-required',
     '--disable-background-networking',
