@@ -1,81 +1,84 @@
-const { application } = require('express')
+const venom = require('venom-bot');
 const express = require('express')
 const app = express()
-const port = 5000
-const puppeteer = require('puppeteer')
-const cors = require('cors');
-app.use(cors({
-    origin: '*'
-}));
-const minimal_args = [
-    '--autoplay-policy=user-gesture-required',
-    '--disable-background-networking',
-    '--disable-background-timer-throttling',
-    '--disable-backgrounding-occluded-windows',
-    '--disable-breakpad',
-    '--disable-client-side-phishing-detection',
-    '--disable-component-update',
-    '--disable-default-apps',
-    '--disable-dev-shm-usage',
-    '--disable-domain-reliability',
-    '--disable-extensions',
-    '--disable-features=AudioServiceOutOfProcess',
-    '--disable-hang-monitor',
-    '--disable-ipc-flooding-protection',
-    '--disable-notifications',
-    '--disable-offer-store-unmasked-wallet-cards',
-    '--disable-popup-blocking',
-    '--disable-print-preview',
-    '--disable-prompt-on-repost',
-    '--disable-renderer-backgrounding',
-    '--disable-setuid-sandbox',
-    '--disable-speech-api',
-    '--disable-sync',
-    '--hide-scrollbars',
-    '--ignore-gpu-blacklist',
-    '--metrics-recording-only',
-    '--mute-audio',
-    '--no-default-browser-check',
-    '--no-first-run',
-    '--no-pings',
-    '--no-sandbox',
-    '--no-zygote',
-    '--password-store=basic',
-    '--use-gl=swiftshader',
-    '--use-mock-keychain',
-    ];
-function getdata () {
-    return new Promise(async (resolve, reject) => {
-        try {
-            let urls = await page.evaluate(() => {
-                let results = [];
-                let items = document.querySelectorAll('div.entry');
-                items.forEach((item, i) => {
-                    results.push({
-                        id:  i + 1,
-                        text: item.innerText,
-                        type: "Entrada e Número"
-                    });
-                });
-                return results.slice(0 ,20);
-              })
-            return resolve(urls);
-        } catch (e) {
-            return reject(e);
-        }
+const bodyParser = require('body-parser')
+const PORT = 5000
+app.use(bodyParser.json())
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+const limparBase = async (contatos) => {
+    const stage1 = await JSON.stringify(contatos)
+    const stage2 = await stage1.replaceAll('(', '')
+    const stage3 = await stage2.replaceAll(')', '')
+    const stage4 = await stage3.replaceAll('-', '')
+    const stage5 = await stage4.replaceAll(' ', '')
+    console.log(stage5)
+    return await JSON.parse(stage5)
+}
+const montarPaginaOutro = (qrcode) => {
+    app.use('/qrcode', (req, res) => {
+        res.send(`<img src="${qrcode}" ></img>`)
+        console.log("pagina montada")
     })
 }
-            
-app.get('/api',async (req, res) => {
-    await getdata().then(await res.send(await getdata().then())).catch(console.log),
-    console.log("Request was made")
-})
+const startingClient = async () => {
+    venom
+    .create(
+        'Computador Gabriel',
+        (base64Qr, asciiQR, attempts, urlCode) => {
+            montarPaginaOutro(base64Qr)
+        },
+        (statusSession, session) => {
+        console.log('Status Session: ', statusSession);
+        //return isLogged || notLogged || browserClose || qrReadSuccess || qrReadFail || autocloseCalled || desconnectedMobile || deleteToken || chatsAvailable || deviceNotConnected || serverWssNotConnected || noOpenBrowser || initBrowser || openBrowser || connectBrowserWs || initWhatsapp || erroPageWhatsapp || successPageWhatsapp || waitForLogin || waitChat || successChat
+        //Create session wss return "serverClose" case server for close
+        console.log('Session name: ', session);
+        },
+        {
+        multidevice: true,
+        
+        folderNameToken: 'tokens', //folder name when saving tokens
+        mkdirFolderToken: './data/app',
+        headless: true, //Turn off and on/WhatsApp screen
+        createPathFileToken: true,
+        puppeteerOptions: { executablePath: '/usr/bin/chromium-browser'}
 
-app.listen(port, async () => {
-    console.log("You've started the server on port" + " " + port + "Your browser is opened. Please wait 1/2 seconds before going to next step.")
-    browser = await puppeteer.launch({ headless: true, args: minimal_args, executablePath: '/usr/bin/chromium-browser'})
-    page = await browser.newPage()
-    console.log("Browser opened")
-    page.goto('https://blaze.com/pt/games/double')
-    console.log("You entered the blazeURL/ Now you are able to run.")
+    })
+    .then((client) => {
+        console.log("client running: " + client)
+
+        const enviarMensagens = async (client, contatos, nomes, tempo, mensagem) => {
+                const contatosFormatados = await limparBase(contatos)
+                console.log(await contatosFormatados)
+                for(k in contatosFormatados) {
+                    await sleep(parseInt(tempo))
+                    console.log(`Contato: ${[k]}` + contatosFormatados[k] + " Nome: " + nomes[k])
+                    await client.sendText("55" + contatosFormatados[k] + "@c.us", mensagem)
+                    .then((result) => {
+                        console.log('Result: ', result); //return object success
+                        })
+                        .catch((erro) => {
+                        console.error('Error when sending: ', erro); //return object error
+                        });
+                }
+                }
+        app.post(`/teste`, (req, res) => {
+            console.log("Post recebido.." + "Sua lista de contatos foi:" + req.body.contatos)
+            let mensagem = req.body.mensagem;
+            let contatos = req.body.contatos;
+            let nomes = req.body.nomes;
+            let tempo = req.body.timeout
+
+            enviarMensagens(client, contatos, nomes, tempo, mensagem)
+        })
+}).catch((erro) => {
+        console.log(erro);
+    });
+}
+
+
+app.listen(PORT, () => {
+    startingClient()
+    console.log("servidor rodando")
 })
